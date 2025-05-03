@@ -1,7 +1,39 @@
 const fs = require('fs/promises');
 
 (async ()=>{
-    
+    let addedContent = false;
+    const addToFile = async(path, content)=>{
+        if(addedContent == true) return;
+
+        await fs.appendFile(path, content);
+        addedContent= true;
+        return console.log(`Content appended to the file ${path}`);
+    }
+    const renameFile = async(oldFilePath, newFilePath)=>{
+        try{
+            await fs.rename(oldFilePath, newFilePath);
+            return console.log(`File ${oldFilePath} renamed to ${newFilePath}`)
+        }catch(err){
+            if(err.code === 'ENOENT'){
+                console.log('No file at this path')
+            }else{
+                console.log(`Some error occured ${err}`)
+            }
+        }
+    }
+    const deleteFile = async(path)=>{
+        try{
+            console.log(`Deleting file ${path}...`);
+            await fs.unlink(path);
+            return console.log(`File ${path} deleted`);
+        }catch(err){
+            if(err.code === 'ENOENT'){
+                console.log('No file at this path')
+            }else{
+                console.log(`Some error occured ${err}`)
+            }
+        }
+    }
 
     const createFile = async(path)=> {
         try{
@@ -16,10 +48,10 @@ const fs = require('fs/promises');
     };
 
     //commands
-    const CREATE_FILE = "create a file"
+    const CREATE_FILE = "create the file"
     const DELETE_FILE = "delete the file"
     const RENAME_FILE = "rename the file"
-    const ADD_TO_FILE = "add the file"
+    const ADD_TO_FILE = "add to the file"
 
 
     //All FileHandler objects are <EventEmitter>s
@@ -59,7 +91,27 @@ const fs = require('fs/promises');
         }
 
         if(command.includes(DELETE_FILE)){
-            const filePath = command.substring(CREATE_FILE.length+1);
+            const filePath = command.substring(DELETE_FILE.length+1);
+            deleteFile(filePath);
+        }
+
+        //rename command: rename the file <path> to <new-path>
+        if(command.includes(RENAME_FILE)){
+            const idx = command.indexOf(" to ");
+            const oldFilePath = command.substring(RENAME_FILE.length+1, idx);
+            const newFilePath = command.substring(idx+4);
+            renameFile(oldFilePath, newFilePath);
+        }
+
+        //add to file command: add to the file <path> this content: <content>
+        if(command.includes(ADD_TO_FILE)){
+            const idx = command.indexOf(" this ");
+            const filePath = command.substring(ADD_TO_FILE.length+1, idx);
+
+            const idxOfColon = command.indexOf(":")
+            const content = command.substring(idxOfColon+1);
+
+            addToFile(filePath, content);
         }
     })
 

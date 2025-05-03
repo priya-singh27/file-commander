@@ -1,1 +1,1 @@
-create a file text.txt 
+add to the file new.txt this content: Hello Priya
