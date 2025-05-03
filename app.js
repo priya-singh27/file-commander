@@ -1,6 +1,27 @@
 const fs = require('fs/promises');
 
 (async ()=>{
+    
+
+    const createFile = async(path)=> {
+        try{
+            const fileHandler = await fs.open(path, 'r');
+            fileHandler.close();
+            return console.log(`The file ${path} already exist`)
+        }catch(err){
+            const newFileHandler = await fs.open(path, 'w');
+            console.log(`File ${path} created successfully`);
+            newFileHandler.close();
+        }
+    };
+
+    //commands
+    const CREATE_FILE = "create a file"
+    const DELETE_FILE = "delete the file"
+    const RENAME_FILE = "rename the file"
+    const ADD_TO_FILE = "add the file"
+
+
     //All FileHandler objects are <EventEmitter>s
     const commandFileHandler = await fs.open("./command.txt","r");//
 
@@ -25,22 +46,27 @@ const fs = require('fs/promises');
         // console.log(`buff: ${buff}`)
 
         //we always want to read the whole content(from beginning to the end)
-        const content = await commandFileHandler.read(buff);
+        // const content = await commandFileHandler.read(buff);
 
         await commandFileHandler.read(buff,offset, length, position);
 
         //decoder 01 => meaningful
         //encoder meaningful => 01
-        
-        console.log(buff.toString('utf-8'));
+        const command = buff.toString('utf-8')
+        if(command.includes(CREATE_FILE)){
+            const filePath = command.substring(CREATE_FILE.length+1);
+            createFile(filePath)
+        }
+
+        if(command.includes(DELETE_FILE)){
+            const filePath = command.substring(CREATE_FILE.length+1);
+        }
     })
 
     // console.log(commandFileHandler.fd)
 
     const watcher = fs.watch('./command.txt');
-
     // console.log(watcher); //async
-
     for await (const event of watcher){
         if(event.eventType=== "change"){
             commandFileHandler.emit("change");
